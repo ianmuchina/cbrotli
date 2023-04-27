@@ -37,6 +37,32 @@ func checkCompressedData(compressedData, wantOriginalData []byte) error {
 	return nil
 }
 
+func checkCompressedData2(compressedData, wantOriginalData []byte, dictionary []byte) error {
+	uncompressed, err := DecodeWithCustomDictionary(compressedData, dictionary)
+	if err != nil {
+		return fmt.Errorf("brotli decompress failed: %v", err)
+	}
+	if !bytes.Equal(uncompressed, wantOriginalData) {
+		if len(wantOriginalData) != len(uncompressed) {
+			return fmt.Errorf(""+
+				"Data doesn't uncompress to the original value.\n"+
+				"Length of original: %v\n"+
+				"Length of uncompressed: %v",
+				len(wantOriginalData), len(uncompressed))
+		}
+		for i := range wantOriginalData {
+			if wantOriginalData[i] != uncompressed[i] {
+				return fmt.Errorf(""+
+					"Data doesn't uncompress to the original value.\n"+
+					"Original at %v is %v\n"+
+					"Uncompressed at %v is %v",
+					i, wantOriginalData[i], i, uncompressed[i])
+			}
+		}
+	}
+	return nil
+}
+
 func TestEncoderNoWrite(t *testing.T) {
 	out := bytes.Buffer{}
 	e := NewWriter(&out, WriterOptions{Quality: 5})

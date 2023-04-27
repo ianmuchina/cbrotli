@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	_ "embed"
 	"fmt"
+	"io"
 	"testing"
 )
 
@@ -43,5 +44,30 @@ func TestDecodeCustomDict(t *testing.T) {
 			"want:\n"+
 			"<%d bytes>",
 			decoded2, len(content))
+	}
+}
+
+func TestEncoderLargeInput2(t *testing.T) {
+	input := content
+	out := bytes.Buffer{}
+	e := NewWriter(&out, WriterOptions{
+		Quality:               5,
+		UsePreparedDictionary: true,
+		PreparedDictionary:    dict_content,
+	})
+
+	in := bytes.NewReader(input)
+	n, err := io.Copy(e, in)
+	if err != nil {
+		t.Errorf("Copy Error: %v", err)
+	}
+	if int(n) != len(input) {
+		t.Errorf("Copy() n=%v, want %v", n, len(input))
+	}
+	if err := e.Close(); err != nil {
+		t.Errorf("Close Error after copied %d bytes: %v", n, err)
+	}
+	if err := checkCompressedData2(out.Bytes(), input, dict_content); err != nil {
+		t.Error(err)
 	}
 }
