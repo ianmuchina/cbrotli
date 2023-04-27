@@ -6,8 +6,6 @@ package cbrotli
 #include <stdint.h>
 
 #include <brotli/encode.h>
-#include <brotli/decode.h>
-#include <brotli/port.h>
 
 struct CompressStreamResult {
   size_t bytes_consumed;
@@ -52,9 +50,7 @@ type WriterOptions struct {
 	Quality int
 	// LGWin is the base 2 logarithm of the sliding window size.
 	// Range is 10 to 24. 0 indicates automatic configuration based on Quality.
-	LGWin      int
-	customDict bool
-	dict       []byte
+	LGWin int
 }
 
 // Writer implements io.WriteCloser by writing Brotli-encoded data to an
@@ -74,10 +70,6 @@ var (
 // Close MUST be called to free resources.
 func NewWriter(dst io.Writer, options WriterOptions) *Writer {
 	state := C.BrotliEncoderCreateInstance(nil, nil, nil)
-	// if options.customDict {
-	// 	x := C.BrotliEncoderPrepareDictionary(0, C.size_t(len(options.dict)), (*C.uint8_t)(&options.dict[0]), (C._t)(options.Quality), nil, nil, nil)
-	// 	C.BrotliEncoderAttachPreparedDictionary(state, x)
-	// }
 	C.BrotliEncoderSetParameter(
 		state, C.BROTLI_PARAM_QUALITY, (C.uint32_t)(options.Quality))
 	if options.LGWin > 0 {
