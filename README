@@ -1,1 +1,7 @@
 test repo for brotli for golang
+
+This command works for whatever reason. idk. need to learn why
+
+```bash
+CGO_LDFLAGS="-lbrotlienc -lbrotlidec -lbrotlicommon " CGO_ENABLED=1 GOOS=linux go test
+```

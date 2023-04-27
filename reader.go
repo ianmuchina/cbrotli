@@ -3,9 +3,7 @@ package cbrotli
 /*
 #include <stddef.h>
 #include <stdint.h>
-
 #include <brotli/decode.h>
-
 static BrotliDecoderResult DecompressStream(BrotliDecoderState* s,
                                             uint8_t* out, size_t out_len,
                                             const uint8_t* in, size_t in_len,
@@ -141,8 +139,6 @@ func (r *Reader) Read(p []byte) (n int, err error) {
 		}
 		r.in = r.buf[:encN]
 	}
-
-	return n, nil
 }
 
 // Decode decodes Brotli encoded data.
@@ -153,6 +149,20 @@ func Decode(encodedData []byte) ([]byte, error) {
 		buf:   make([]byte, 4), // arbitrarily small but nonzero so that r.src.Read returns io.EOF
 		in:    encodedData,
 	}
+	defer r.Close()
+	return ioutil.ReadAll(r)
+}
+
+func DecodeWithCustomDictionary(encodedData []byte, dictionary []byte) ([]byte, error) {
+	s := C.BrotliDecoderCreateInstance(nil, nil, nil)
+	C.BrotliDecoderAttachDictionary(s, 0, C.size_t(len(dictionary)), (*C.uint8_t)(&dictionary[0]))
+	r := &Reader{
+		src:   bytes.NewReader(nil),
+		state: s,
+		buf:   make([]byte, 4), // arbitrarily small but nonzero so that r.src.Read returns io.EOF
+		in:    encodedData,
+	}
+
 	defer r.Close()
 	return ioutil.ReadAll(r)
 }
