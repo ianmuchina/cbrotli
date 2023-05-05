@@ -2,41 +2,49 @@ package cbrotli
 
 import (
 	"bytes"
-	"crypto/sha256"
 	_ "embed"
 	"fmt"
 	"io"
+	"log"
 	"testing"
 )
 
-//go:embed cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js.br
+//go:embed tests/file1.txt.sbr
 var encoded_br []byte
 
-//go:embed cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js.sbr
+//go:embed tests/file1.txt.sbr
 var encoded_sbr []byte
 
-//go:embed cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js
+//go:embed tests/file1.txt
 var content []byte
 
-//go:embed cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js
+//go:embed tests/dict.txt
 var dict_content []byte
 
 func TestDecodeCustomDict(t *testing.T) {
-	decoded1, err := Decode(encoded_sbr)
+	// Decode with shared Dictionary
+	decoded2, err2 := DecodeWithCustomDictionary(encoded_sbr, dict_content)
+	if err2 != nil {
+		fmt.Printf("err a, %v\n", err2)
+	}
+	// Decode without shared dictionary. Should have error
+	_, err1 := Decode(encoded_sbr)
 
-	if err != nil {
-		fmt.Println("err")
+	// Dictionary error
+	if err1 == fmt.Errorf("cbrotli: DICTIONARY") {
+		fmt.Printf("yes, err b ;;%v;;\n", err1)
+	} else if err1 != nil {
+		// some other error
+		log.Fatal(err1)
 	}
-	decoded2, err := DecodeWithCustomDictionary(encoded_sbr, dict_content)
-	fmt.Println("===")
-	fmt.Printf("decoded1: %x\n", sha256.Sum256(decoded1))
-	fmt.Printf("decoded2: %x\n", sha256.Sum256(decoded2))
-	fmt.Printf("original: %x\n", sha256.Sum256(content))
-	fmt.Println("===")
-	// TODO: Error checks
-	if err != nil {
-		t.Errorf("Decode: %v", err)
-	}
+
+	// fmt.Printf("%s", err1)
+	// fmt.Println("===")
+	// fmt.Printf("decoded1: %x\n", sha256.Sum256(decoded1))
+	// fmt.Printf("decoded2: %x\n", sha256.Sum256(decoded2))
+	// fmt.Printf("original: %x\n", sha256.Sum256(content))
+	// fmt.Println("===")
+
 	if !bytes.Equal(decoded2, content) {
 		t.Errorf(""+
 			"Decode content:\n"+

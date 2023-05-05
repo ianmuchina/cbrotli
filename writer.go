@@ -74,6 +74,7 @@ var (
 // Close MUST be called to free resources.
 func NewWriter(dst io.Writer, options WriterOptions) *Writer {
 	state := C.BrotliEncoderCreateInstance(nil, nil, nil)
+	// Prepare & Attach Custom dictionary
 	if options.UsePreparedDictionary {
 		PreparedDictionary := C.BrotliEncoderPrepareDictionary(0, C.size_t(len(options.PreparedDictionary)), (*C.uint8_t)(&options.PreparedDictionary[0]), C.int(options.Quality), nil, nil, nil)
 		C.BrotliEncoderAttachPreparedDictionary(state, PreparedDictionary)
